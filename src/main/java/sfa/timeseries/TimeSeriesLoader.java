@@ -88,6 +88,7 @@ public class TimeSeriesLoader {
     List<Double>[] mts = null;
     int lastId = -1;
 
+    // 1 1 1 162.0 -38.0
     try (BufferedReader br = new BufferedReader(new FileReader(dataset))) {
       String line = null;
       double label = -1;
@@ -112,7 +113,7 @@ public class TimeSeriesLoader {
         // timeStamp
         /* int timeStamp = Integer.valueOf(columns[1].trim()); */
 
-        // the data
+        // the data (all features must be the same length!
         for (int dim = 0; dim < columns.length - 3; dim++) { // all dimensions
           String column = columns[dim + 3].trim();
           try {

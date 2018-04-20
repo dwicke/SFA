@@ -4,6 +4,11 @@ package sfa.transformation;
 
 import com.carrotsearch.hppc.ObjectIntHashMap;
 import com.carrotsearch.hppc.cursors.IntCursor;
+import net.seninp.jmotif.sax.NumerosityReductionStrategy;
+import net.seninp.jmotif.sax.SAXException;
+import net.seninp.jmotif.sax.TSProcessor;
+import net.seninp.jmotif.sax.alphabet.NormalAlphabet;
+import net.seninp.jmotif.sax.datastructure.SAXRecords;
 import sfa.classification.Classifier.Words;
 import sfa.timeseries.MultiVariateTimeSeries;
 import sfa.timeseries.TimeSeries;
@@ -34,7 +39,7 @@ public class SFA implements Serializable {
   public int maxWordLength;
 
   // The Momentary Fourier Transform
-  public MFT transformation;
+  public TSAproximation transformation;
 
   // use binning / bucketing
   public double[][] bins;
@@ -45,6 +50,8 @@ public class SFA implements Serializable {
 
   // for the MFT classifier
   private boolean mftUseMaxOrMin = false;
+
+  private boolean useMFT = false;
 
   static class ValueLabel implements Serializable {
     private static final long serialVersionUID = 4392333771929261697L;
@@ -76,6 +83,11 @@ public class SFA implements Serializable {
     this.histogramType = histogramType;
     this.mftUseMaxOrMin = mftUseMaxOrMin;
   }
+
+  public SFA(HistogramType histogramType, boolean mftUseMaxOrMin, boolean useMFT) {
+    this.useMFT = useMFT;
+  }
+
 
   public void reset() {
     this.initialized = false;
@@ -267,7 +279,12 @@ public class SFA implements Serializable {
    * @param normMean     if set, the mean is subtracted from each sliding window
    */
   public void fitWindowing(TimeSeries[] timeSeries, int windowLength, int wordLength, int symbols, boolean normMean, boolean lowerBounding) {
-    this.transformation = new MFT(windowLength, normMean, lowerBounding, this.mftUseMaxOrMin);
+
+    if (useMFT) {
+      this.transformation = new MFT(windowLength, normMean, lowerBounding, this.mftUseMaxOrMin);
+    }else {
+      this.transformation = new SAX(windowLength);
+    }
 
     ArrayList<TimeSeries> sa = new ArrayList<>(
         timeSeries.length * timeSeries[0].getLength() / windowLength);
@@ -297,7 +314,42 @@ public class SFA implements Serializable {
     }
 
     return words;
+
   }
+
+  public short[][] transformSAX(TimeSeries timeSeries, int windowSize) {
+    double ts[] = timeSeries.getData();
+    short[][] words = new short[ts.length - windowSize][];
+
+    TSProcessor tsProcessor = new TSProcessor();
+    NormalAlphabet normalA = new NormalAlphabet();
+    try {
+      double[] cuts = normalA.getCuts(alphabetSize);
+      double nThreshold = .005;
+      int paaSize = this.wordLength;
+
+
+      for (int i = 0; i <= ts.length - windowSize; ++i) {
+        double[] subSection = Arrays.copyOfRange(ts, i, i + windowSize);
+        subSection = tsProcessor.znorm(subSection, nThreshold);
+        double[] paa = tsProcessor.paa(subSection, paaSize);
+        char[] currentString = tsProcessor.ts2String(paa, cuts);
+
+        short[] vals = new short[currentString.length];
+        for (int j = 0; j < currentString.length; j++) {
+          vals[j] = (short) currentString[j];
+        }
+
+        words[i] = vals;
+      }
+
+    }catch (SAXException se) {
+      System.err.println("processing to sax string resulted in error " + se.toString());
+      System.exit(9);
+    }
+    return words;
+  }
+
 
   /**
    * Extracts sliding windows from a time series and applies the Fourier
@@ -351,7 +403,11 @@ public class SFA implements Serializable {
       init(wordLength, symbols);
 
       if (this.transformation == null) {
-        this.transformation = new MFT(samples[0].getLength(), normMean, this.lowerBounding, this.mftUseMaxOrMin);
+        if (useMFT) {
+          this.transformation = new MFT(samples[0].getLength(), normMean, this.lowerBounding, this.mftUseMaxOrMin);
+        }else {
+          this.transformation = new SAX(samples[0].getLength());
+        }
       }
     }
 

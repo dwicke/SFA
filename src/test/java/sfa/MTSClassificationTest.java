@@ -19,7 +19,8 @@ public class MTSClassificationTest {
 
   // The multivariate datasets to use
   public static String[] datasets = new String[]{
-      "LP1",
+      "AReM"
+          /*"LP1",
       "LP2",
       "LP3",
       "LP4",
@@ -38,7 +39,7 @@ public class MTSClassificationTest {
       "CharacterTrajectories",
       "ArabicDigits",
       "AUSLAN",
-      "NetFlow",
+      "NetFlow",*/
   };
 
 

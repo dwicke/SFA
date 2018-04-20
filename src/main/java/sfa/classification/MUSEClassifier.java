@@ -156,6 +156,33 @@ public class MUSEClassifier extends Classifier {
     return Math.min(max, MAX_WINDOW_SIZE);
   }
 
+  public Problem getProblem(final MultiVariateTimeSeries[] samples, int bestF, SFA.HistogramType bestHistType, boolean bestNorm) {
+    int dimensionality = samples[0].getDimensions();
+    int min = 4;
+    int max = getMax(samples, MAX_WINDOW_LENGTH);
+    final int[] windowLengths = new int[max - min + 1];
+    for (int w = min, a = 0; w <= max; w++, a++) {
+      windowLengths[a] = w;
+    }
+
+    // obtain the final matrix
+    MUSE model = new MUSE(bestF, maxS, bestHistType, windowLengths, bestNorm, lowerBounding);
+    int[][][] words = model.createWords(samples);
+    MUSE.BagOfBigrams[] bob = model.createBagOfPatterns(words, samples, dimensionality, bestF);
+
+    Problem before = initLibLinearProblem(bob, model.dict, bias);
+
+    model.filterChiSquared(bob, chi);
+
+    Problem after = initLibLinearProblem(bob, model.dict, bias);
+
+    System.err.println("Number of features before chi squared = " + before.x[0].length + " number after = " + after.x[0].length);
+    System.err.println("Dict size = " + model.dict.size());
+    //System.err.println("BOB length = " + b);
+
+    return initLibLinearProblem(bob, model.dict, bias);
+  }
+
   public MUSEModel fitMuse(final MultiVariateTimeSeries[] samples) {
     int dimensionality = samples[0].getDimensions();
     try {
