@@ -115,10 +115,19 @@ public abstract class Classifier {
 
   protected Predictions evalLabels(MultiVariateTimeSeries[] testSamples, Double[] labels) {
     int correct = 0;
+    Set<Double> labelSet = new TreeSet<>();
     for (int ind = 0; ind < testSamples.length; ind++) {
+      labelSet.add(labels[ind]);
       correct += compareLabels(labels[ind],(testSamples[ind].getLabel()))? 1 : 0;
     }
-    return new Predictions(labels, correct);
+
+    int[][] confusionMatrix = new int[labelSet.size()][labelSet.size()];
+    for (int ind = 0; ind < testSamples.length; ind++) {
+      // [actual class][classified as]
+      confusionMatrix[labels[ind].intValue() - 1][(int)(testSamples[ind].getLabel() - 1)]++;
+    }
+
+    return new Predictions(labels, correct, confusionMatrix);
   }
 
   public static class Words {
@@ -229,7 +238,7 @@ public abstract class Classifier {
     public int testing;
     public int testSize;
     public int windowLength;
-
+    public int[][] confusionMatrix;
     public Score() {
     }
 
@@ -284,11 +293,18 @@ public abstract class Classifier {
 
   public static class Predictions {
     public Double[] labels;
+    public int[][] confusionMatrix;
     public AtomicInteger correct;
 
     public Predictions(Double[] labels, int bestCorrect) {
       this.labels = labels;
       this.correct = new AtomicInteger(bestCorrect);
+    }
+
+    public Predictions(Double[] labels, int correct, int[][] confusionMatrix) {
+      this.labels = labels;
+      this.correct = new AtomicInteger(correct);
+      this.confusionMatrix = confusionMatrix;
     }
   }
 
@@ -300,6 +316,43 @@ public abstract class Classifier {
     System.out.print("Correct:\t");
     System.out.print("" + correctStr + "");
     System.out.println("\tTime: \t" + (System.currentTimeMillis() - time) / 1000.0 + " s");
+  }
+
+  public static void outputResult(Score predictions, long time, int testSize) {
+    double error = formatError(predictions.training, testSize);
+    //String errorStr = MessageFormat.format("{0,number,#.##%}", error);
+    String correctStr = MessageFormat.format("{0,number,#.##%}", 1 - error);
+
+    System.out.print("Correct:\t");
+    System.out.print("" + correctStr + "");
+    System.out.println("\tTime: \t" + (System.currentTimeMillis() - time) / 1000.0 + " s");
+
+
+  }
+
+  public static void outputResult(Predictions predictions, long time, int testSize) {
+    double error = formatError(predictions.correct.get(), testSize);
+    //String errorStr = MessageFormat.format("{0,number,#.##%}", error);
+    String correctStr = MessageFormat.format("{0,number,#.##%}", 1 - error);
+
+    System.out.print("Correct:\t");
+    System.out.print("" + correctStr + "");
+    System.out.println("\tTime: \t" + (System.currentTimeMillis() - time) / 1000.0 + " s");
+
+    System.out.println("Each row is the actual label and each column is the predicted label");
+    for (int i = 0; i < predictions.confusionMatrix.length; i++) {
+      System.out.print(" " + (i + 1));
+    }
+    System.out.println("");
+    // now output the confusion matrix
+    for (int i = 0; i < predictions.confusionMatrix.length; i++) {
+      System.out.print("" + (i + 1) + " ");
+      for (int j = 0; j < predictions.confusionMatrix[i].length; j++) {
+        System.out.print(" " + predictions.confusionMatrix[i][j] + " ");
+      }
+      System.out.print("\n");
+    }
+
   }
 
   public static double formatError(int correct, int testSize) {

@@ -5,17 +5,17 @@ package sfa;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import sfa.classification.*;
+import sfa.classification.Classifier;
+import sfa.classification.MUSEClassifier;
 import sfa.timeseries.MultiVariateTimeSeries;
 import sfa.timeseries.TimeSeries;
 import sfa.timeseries.TimeSeriesLoader;
-import sfa.transformation.MUSE;
 
 import java.io.File;
 import java.io.IOException;
 
 @RunWith(JUnit4.class)
-public class MTSClassificationTest {
+public class MTSTestWithIoT {
 
   // The multivariate datasets to use
   public static String[] datasets = new String[]{
@@ -45,6 +45,10 @@ public class MTSClassificationTest {
 
   @Test
   public void testMultiVariatelassification() throws IOException {
+
+
+
+
     try {
       // the relative path to the datasets
       ClassLoader classLoader = SFAWordsTest.class.getClassLoader();

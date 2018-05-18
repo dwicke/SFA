@@ -112,15 +112,23 @@ public class MUSEClassifier extends Classifier {
     // training score
     if (DEBUG) {
       System.out.println(score.toString());
-      outputResult(score.training, startTime, trainSamples.length);
+      outputResult(score, startTime, trainSamples.length);
     }
 
     // determine score
-    int correctTesting = score(testSamples).correct.get();
+//    int correctTesting = score(testSamples).correct.get();
+//
+//    if (DEBUG) {
+//      System.out.println("WEASEL+MUSE Testing:\t");
+//      outputResult(correctTesting, startTime, testSamples.length);
+//      System.out.println("");
+//    }
 
+    Predictions predictedVals = score(testSamples);
+    int correctTesting = predictedVals.correct.get();
     if (DEBUG) {
       System.out.println("WEASEL+MUSE Testing:\t");
-      outputResult(correctTesting, startTime, testSamples.length);
+      outputResult(predictedVals, startTime, testSamples.length);
       System.out.println("");
     }
 

@@ -2,7 +2,7 @@
 // Distributed under the GLP 3.0 (See accompanying file LICENSE)
 package sfa;
 
-import sfa.classification.EVM;
+//import sfa.classification.EVM;
 import de.bwaldvogel.liblinear.Feature;
 import de.bwaldvogel.liblinear.FeatureNode;
 import de.bwaldvogel.liblinear.Problem;
@@ -110,23 +110,23 @@ public class MTSFeatureTest {
 //              }
 
 
-              EVM evm = new EVM(true);
-              int tau = 20;
-              double sigma = .5;
-              int maxEVs = 3000;
-              double tolerance = .1;
+//              EVM evm = new EVM(true);
+//              int tau = 20;
+//              double sigma = .5;
+//              int maxEVs = 3000;
+//              double tolerance = .1;
+//
+//              int alabels[] = new int[labels.size()];
+//              int i = 0;
+//              for (Integer a : labels) {
+//                alabels[i] = a;
+//                i++;
+//              }
+//
+//
+//              List<EVM.Model> themodel = evm.train(data,tau,alabels,p.l,sigma, maxEVs, tolerance);
 
-              int alabels[] = new int[labels.size()];
-              int i = 0;
-              for (Integer a : labels) {
-                alabels[i] = a;
-                i++;
-              }
-
-
-              List<EVM.Model> themodel = evm.train(data,tau,alabels,p.l,sigma, maxEVs, tolerance);
-
-              System.err.println("I got the EVs! = " + themodel.size());
+//              System.err.println("I got the EVs! = " + themodel.size());
 
 //              for (int i = 0; i < p.x.length; i++) {
 //                System.err.println("label = " + p.y[i] + " feature vector length = " + p.x[i].length + " vals = ");
